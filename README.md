@@ -37,6 +37,7 @@ Open a terminal window and run:
 #### Define the UID (User ID) of the SFTP service (VERY IMPORTANT!)
 
 Get the UID of your user
+
     $ id -u
 
 In case the id is 1001, nothing needs to be done. However, in case where the id of your user is not 1001, you NEED to edit the docker-compose.yaml file of the SFTP service in order for it to be able to write files to your filesystem. 
