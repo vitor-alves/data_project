@@ -157,7 +157,7 @@ Modify the following command with the values you want for @x1, @x2, @x3, @x4, @y
     - Requirement fulfilled. I'm all services are deployed using docker.
 2. **Sketch up how you would set up the application using any cloud provider (AWS, Google Cloud, etc).**
     - Not taking the cost into consideration, I would change things a bit compared to the current implementation. I would use use AWS Transfer for SFTP, Airbyte for Extract and Load phases, Amazon Redshift for the Data Warehouse, dbt (in AWS) for data transformation, and Tableau for Analytics and BI. 
-    - ![see file production_implementation.png if you can't see the picture here](https://imgur.com/hs4ExM7)
+    - !![see file production_implementation.png if you can't see the picture here. Alternatively, check https://imgur.com/hs4ExM7](production_implementation.png "production_implementation.png")
 
 - **Include a .sql file with queries to answer these questions**
     - **From the two most commonly appearing regions, which is the latest datasource?**
