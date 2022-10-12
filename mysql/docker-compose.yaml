@@ -1,0 +1,32 @@
+version: '3.7'
+services:
+  mysql:
+    image: mysql:8.0.30
+    container_name: mysql
+    command: 
+    - '--default-authentication-plugin=mysql_native_password'
+    - '--local-infile=1'
+    - '--init-file=/data/application/init.sql'
+    restart: always
+    volumes:
+        - ./init.sql:/data/application/init.sql
+        - ./sql_queries:/sql_queries
+    ports:
+      - 33061:3306
+    networks:
+      - global_network
+    environment:
+      MYSQL_ROOT_PASSWORD: "2ujajd28jAXZAfPamg"
+      MYSQL_DATABASE: 'app_db'   
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 33380:8080
+    networks:
+      - global_network
+networks:
+  global_network:
+    external:
+      name: global_network
