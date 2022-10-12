@@ -1,0 +1,17 @@
+version: "3.7"
+services:
+  sftp:
+      image: atmoz/sftp
+      container_name: sftp
+      volumes:
+          - ./raw_data:/home/foo/upload/raw_data
+          - ./out_data:/home/foo/upload/out_data
+      ports:
+          - "22221:22"
+      networks:
+          - global_network
+      command: foo:Daj3cXpOamaS7a1m:1001
+networks:
+  global_network:
+    external:
+      name: global_network
