@@ -1,16 +1,20 @@
-prepare stmt from 'with trips_per_week as (
-    select count(*) num_trips, week(datetime) week
-    from trips
-    where
+prepare stmt from 'SELECT *
+FROM trips
+WHERE
+(
+    -- Contains the region
     region = ?
-    or
-    (
-        ST_X(origin_coord) BETWEEN LEAST(?,?,?,?) AND GREATEST(?,?,?,?)
-        AND
-        ST_Y(origin_coord) BETWEEN LEAST(?,?,?,?) AND GREATEST(?,?,?,?)
-    )
-    group by week(datetime)
 )
-select sum(num_trips)/count(*) as "Average Trips per Week"
-from trips_per_week;';
-execute stmt using @region,@x1,@x2,@x3,@x4,@x1,@x2,@x3,@x4,@y1,@y2,@y3,@y4,@y1,@y2,@y3,@y4;
+OR
+(
+    -- Contains the origin_coord
+    MBRContains(
+        POLYGON(LINESTRING(point(?,?),point(?,?),point(?,?),point(?,?),point(?,?))),
+            origin_coord)
+    -- Contains the destination_coord
+    AND MBRContains(
+        POLYGON(LINESTRING(point(?,?),point(?,?),point(?,?),point(?,?),point(?,?))),
+            destination_coord)
+)
+;';
+execute stmt using @region, @lon1, @lat1, @lon2, @lat2, @lon3, @lat3, @lon4, @lat4, @lon1, @lat1, @lon1, @lat1, @lon2, @lat2, @lon3, @lat3, @lon4, @lat4, @lon1, @lat1;

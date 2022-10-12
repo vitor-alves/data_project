@@ -140,13 +140,13 @@ Once a DAG is triggered, Airflow watches the SFTP service, waiting for trips.csv
 Modify the following command with the values you want for @x1, @x2, @x3, @x4, @y1, @y2, @y3, @y4, and @region, then execute it in the console.  
 MySQL will ask for the user password. The password is 2ujajd28jAXZAfPamg
 
-    docker exec -it mysql bash -c 'mysql -u root -p --database app_db --batch -e "set @x1 = 0; set @x2 = 0; set @x3 = 0; set @x4 = 0; set @y1 = 0; set @y2 = 0; set @y3 = 0; set @y4 = 0; set @region = \"Prague\"; source /sql_queries/weekly_average_num_trips.sql;"'
+    docker exec -it mysql bash -c 'mysql -u root -p --database app_db --batch -e "set @lon1 = 0; set @lat1 = 0; set @lon2 = 30.0; set @lat2 = 0; set @lon3 = 0; set @lat3 = 50.0; set @lon4 = 30.0; set @lat4 = 50.0; set @region = \"Prague\"; source /sql_queries/weekly_average_num_trips.sql;"'
 
 4. **Develop a way to inform the user about the status of the data ingestion without using a polling solution.**
     * The user can check the status of the data ingestion at http://localhost:18080/dags/ingest_data_trips_to_mysql/grid
     * ![see file airflow_status_page.png if you can't see the picture here](airflow_status_page.png "airflow_status_page.png")
 5. **The solution should be scalable to 100 million entries. It is encouraged to simplify the data by a data model. Please add proof that the solution is scalable.**
-    * The solution is scalable to 100 milion entries. Lets analyze each component and see if any of them could be a bottleneck to scale up to 100 milion entires.
+    * The solution is scalable to 100 milion entries. Lets analyze each component and see if any of them could be a bottleneck to scale up to 100 milion entries.
         * SFTP and file size. The sample file is 12.9kB and contains 100 rows. That being said, we can estimate that a file with 100 milion rows would be 129mB. This a very reasonable size for the SFTP server to serve and for Airflow to consume. SFTP is capable of transfering files much greater than that, so file size and SFTP is are not a bottleneck. 
     * Airflow. The only part of the DAG that is affected by the file size are the parts associated with consuming the files from SFTP and moving the file into the MySQL container for further ingestion of the file. Considering a 100 milion file would be only 129 mB, this is not a bottleneck.
     * MySQL. MySQL is a database well known for being able to handle tables with over 100M rows. This is well documented online, and I personally have managed tables even bigger in MySQL before. There are some caveats, but it's 100% possible and a viable solution. You would need to create indexes on some of the columns, possibly would want to partition the table by date, and maybe do some SQL tunning to improve the SQL queries that access that table, but good performance certanly can be achieved. MySQL is certanly not the best database for this job, a MPP Database (e.g. Amazon Redshift, Google BigQuery, Amazon Synapse Analytics) would but better, but MySQL is free, reliable, and can be considered good enough for the business problem we are analyzing here. Regarding the data model, a single trips table with 100M rows as currently implemented is sufficient. However, my suggestion, in case this was a production environment, would be to evolve that into an actual data warehouse solution by using Kimball dimensional modeling techniques (a Star Schema with dimension and fact tables).
@@ -155,18 +155,18 @@ MySQL will ask for the user password. The password is 2ujajd28jAXZAfPamg
 
 ## Bonus features checklist
 1. **Containerize your solution.**
-    - Requirement fulfilled. I'm all services are deployed using docker.
+    - Requirement fulfilled. All services are deployed using docker.
 2. **Sketch up how you would set up the application using any cloud provider (AWS, Google Cloud, etc).**
     - Not taking the cost into consideration, I would change things a bit compared to the current implementation. I would use use AWS Transfer for SFTP, Airbyte for Extract and Load phases, Amazon Redshift for the Data Warehouse, dbt (in AWS) for data transformation, and Tableau for Analytics and BI. 
-    - !![see file production_implementation.png if you can't see the picture here. Alternatively, check https://imgur.com/hs4ExM7](production_implementation.png "production_implementation.png")
+    - ![see file production_implementation.png if you can't see the picture here. Alternatively, check https://imgur.com/hs4ExM7](production_implementation.png "production_implementation.png")
 
 - **Include a .sql file with queries to answer these questions**
     - **From the two most commonly appearing regions, which is the latest datasource?**
         - Done. The most commonly appearing region is Turin, and the latest data source is pt_search_app. The second most commonly appearing region is Prague, and the latest datasource is cheap_mobile.
         - Code available at sql_queries/most_common_region_latest_datasource.sql
     - **What regions has the "cheap_mobile" datasource appeared in?**
-    - Done. cheap_mobile appears in Prague, Turin, and Hamburg.
-    - Code available at sql_queries/regions_where_cheap_mobile_appeared.sql
+        - Done. cheap_mobile appears in Prague, Turin, and Hamburg.
+        - Code available at sql_queries/regions_where_cheap_mobile_appeared.sql
 
 
 

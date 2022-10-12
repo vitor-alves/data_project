@@ -6,7 +6,7 @@ with region_rank as (
            row_number() over (partition by region order by datetime desc) as rank_datetime_in_region
     from stg_trips
 )
-select region, datasource
+select region, datasource as latest_datasource
 from (
     select region,
            datasource,
