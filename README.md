@@ -138,8 +138,9 @@ Once a DAG is triggered, Airflow watches the SFTP service, waiting for trips.csv
     * To obtain the result, we need to run the query in MySQL. A quick way to do it is to use the console to connect to the "mysql" container, and run the "mysql" command with the query we want to execute as the content of the "-e" (--execute) parameter. The reason I'm choosing this solution is because this is quick to develop, but it's definitely not the solution I would choose if this was an actual production-level project because it is suitable for SQL injection, a little hard to use and understand, and too error prone because the user needs to modify the command to set the variables. For a production-level project I would encapsulate the access to the database behind a secure and user friendly REST API.
     
 Modify the following command with the values you want for @x1, @x2, @x3, @x4, @y1, @y2, @y3, @y4, and @region, then execute it in the console.  
+MySQL will ask for the user password. The password is 2ujajd28jAXZAfPamg
 
-    sudo docker exec -it mysql bash -c 'mysql -u root -p --database app_db --batch -e "set @x1 = 0; set @x2 = 0; set @x3 = 0; set @x4 = 0; set @y1 = 0; set @y2 = 0; set @y3 = 0; set @y4 = 0; set @region = \"Prague\"; source /sql_queries/weekly_average_num_trips.sql;"'
+    docker exec -it mysql bash -c 'mysql -u root -p --database app_db --batch -e "set @x1 = 0; set @x2 = 0; set @x3 = 0; set @x4 = 0; set @y1 = 0; set @y2 = 0; set @y3 = 0; set @y4 = 0; set @region = \"Prague\"; source /sql_queries/weekly_average_num_trips.sql;"'
 
 4. **Develop a way to inform the user about the status of the data ingestion without using a polling solution.**
     * The user can check the status of the data ingestion at http://localhost:18080/dags/ingest_data_trips_to_mysql/grid
