@@ -40,7 +40,10 @@ Get the UID of your user
     $ id -u
 
 In case the id is 1001, nothing needs to be done. However, in case where the id of your user is not 1001, you NEED to edit the docker-compose.yaml file of the SFTP service in order for it to be able to write files to your filesystem. 
+
 You can do this by opening the sftp/docker-compose.yaml file and editing the line where it says foo:Daj3cXpOamaS7a1m:1001 to foo:Daj3cXpOamaS7a1m:ID_OF_YOUR_USER
+
+Save the modified sftp/docker-compose.yaml file, and proceed to the next step.
 
 ![see file SFTP_UID_warning.png if you can't see the picture here](SFTP_UID_warning.png "SFTP_UID_warning.png")
 
