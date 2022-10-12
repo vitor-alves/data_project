@@ -137,7 +137,7 @@ Once a DAG is triggered, Airflow watches the SFTP service, waiting for trips.csv
 ![see file bounding_box.png if you can't see the picture here](bounding_box.png "bounding_box.png")
     * To obtain the result, we need to run the query in MySQL. A quick way to do it is to use the console to connect to the "mysql" container, and run the "mysql" command with the query we want to execute as the content of the "-e" (--execute) parameter. The reason I'm choosing this solution is because this is quick to develop, but it's definitely not the solution I would choose if this was an actual production-level project because it is suitable for SQL injection, a little hard to use and understand, and too error prone because the user needs to modify the command to set the variables. For a production-level project I would encapsulate the access to the database behind a secure and user friendly REST API.
     
-Modify the following command with the values you want for @x1, @x2, @x3, @x4, @y1, @y2, @y3, @y4, and @region, then execute it in the console.  
+Modify the following command with the values you want for @lon1,@lat1,@lon2,@lat2,@lon3,@lat3,@lon4,@lat4, and @region, then execute it in the console.  
 MySQL will ask for the user password. The password is 2ujajd28jAXZAfPamg
 
     docker exec -it mysql bash -c 'mysql -u root -p --database app_db --batch -e "set @lon1 = 0; set @lat1 = 0; set @lon2 = 30.0; set @lat2 = 0; set @lon3 = 0; set @lat3 = 50.0; set @lon4 = 30.0; set @lat4 = 50.0; set @region = \"Prague\"; source /sql_queries/weekly_average_num_trips.sql;"'
