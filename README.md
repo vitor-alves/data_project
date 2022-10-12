@@ -122,7 +122,7 @@ Below is the only available DAGs
     
 Those are the tasks executed by this DAG (in that order)
     
-    wait_for_input_file >> download_file >> process_file >> upload_file >> truncate_sink_mysql >> load_file_to_mysql >> process_stg_to_final
+    wait_for_input_file >> download_file >> process_file >> upload_file >> truncate_stg_mysql >> load_file_to_mysql >> truncate_sink_mysql >> process_stg_to_final
 
 Once a DAG is triggered, Airflow watches the SFTP service, waiting for trips.csv file to be available. Once it is available, it then downloads the file from the SFTP server and saves it locally. It then processes this file and converts the input file into a standardized .tsv file that is saved both locally and in an SFTP server for backup or reprocessing if nedded (cloud storages such as AWS S3 could also be used). After that, Airflow copies the content of this processed .tsv file and saves the data in an empty staging table in MySQL. Then comes the last step that uses SQL queries to cleanse and transform the staging data and insert into the final production table.
 
