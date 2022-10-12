@@ -30,7 +30,17 @@ def bulk_load_sql(table_name, **kwargs):
     conn.bulk_load_custom(table=table_name, tmp_file=local_filepath, duplicate_key_handling='IGNORE')
     return table_name
 
-def truncate_table_mysql(table_name, **kwargs):
+def truncate_stg_table_mysql(table_name, **kwargs):
+    conn = MySqlHook(mysql_conn_id='my_mysql_server')
+    cn = conn.get_conn()
+    c = cn.cursor()
+    c.execute("TRUNCATE TABLE {}".format(table_name))
+    cn.commit()
+    c.close()
+    cn.close()
+    return table_name
+
+def truncate_sink_table_mysql(table_name, **kwargs):
     conn = MySqlHook(mysql_conn_id='my_mysql_server')
     cn = conn.get_conn()
     c = cn.cursor()
@@ -44,7 +54,10 @@ def process_stg_to_final(stg_table_name, final_table_name, **kwargs):
     conn = MySqlHook(mysql_conn_id='my_mysql_server')
     cn = conn.get_conn()
     c = cn.cursor()
-    c.execute("insert into {} (region,origin_coord,destination_coord,datetime) select distinct region,ST_GeomFromText(origin_coord),ST_GeomFromText(destination_coord),datetime from {}".format(final_table_name, stg_table_name))
+    # Selecting only distinct records based on origin, destination, and datetime. Region is selected via max(region),
+    # but this should not be a problem considering there should be no records with the same origin_coord and destination_coord with different regions.
+    # If there is such case, max(region) will be selected 
+    c.execute("insert into {} (region,origin_coord,destination_coord,datetime) select max(region),ST_GeomFromText(origin_coord),ST_GeomFromText(destination_coord),datetime from {} group by ST_GeomFromText(origin_coord),ST_GeomFromText(destination_coord),datetime".format(final_table_name, stg_table_name))
     cn.commit()
     c.close()
     cn.close()
@@ -84,10 +97,10 @@ with DAG("ingest_data_trips_to_mysql",
         operation="put"
     )
 
-    truncate_sink_mysql = PythonOperator(
-        task_id='truncate-sink-mysql',
+    truncate_stg_mysql = PythonOperator(
+        task_id='truncate-stg-mysql',
         provide_context=True,
-        python_callable=truncate_table_mysql,
+        python_callable=truncate_stg_table_mysql,
         op_kwargs={'table_name': 'stg_trips'},
         dag=dag)
 
@@ -98,6 +111,14 @@ with DAG("ingest_data_trips_to_mysql",
         op_kwargs={'table_name': 'stg_trips'},
         dag=dag)
 
+    truncate_sink_mysql = PythonOperator(
+    task_id='truncate-sink-mysql',
+    provide_context=True,
+    python_callable=truncate_sink_table_mysql,
+    op_kwargs={'table_name': 'trips'},
+    dag=dag)
+
+
     process_stg_to_final = PythonOperator(
         task_id='process_stg_to_final',
         provide_context=True,
@@ -105,4 +126,4 @@ with DAG("ingest_data_trips_to_mysql",
         op_kwargs={'stg_table_name': 'stg_trips', 'final_table_name': 'trips'},
         dag=dag)
 
-    wait_for_input_file >> download_file >> process_file >> upload_file >> truncate_sink_mysql >> load_file_to_mysql >> process_stg_to_final
+    wait_for_input_file >> download_file >> process_file >> upload_file >> truncate_stg_mysql >> load_file_to_mysql >> truncate_sink_mysql >> process_stg_to_final
